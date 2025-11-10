@@ -1,7 +1,7 @@
-import { NarrativeSceneBase } from "./shared/NarrativeSceneBase";
+import { NarrativeSceneBase } from "../shared/NarrativeSceneBase";
 import museumInterior from "figma:asset/cdc0af926f550e7f0779a5e8c15e05fa8559a86a.png";
 
-interface StoryNarrationProps {
+interface PrologueNarratorProps {
   onComplete: (narratives?: string[]) => void;
 }
 
@@ -17,9 +17,9 @@ const narrativeSegments = [
   },
 ];
 
-export function StoryNarration({
+export function PrologueNarrator({
   onComplete,
-}: StoryNarrationProps) {
+}: PrologueNarratorProps) {
   const handleComplete = () => {
     // 将叙事文本提取出来传递给父组件
     const narrativeTexts = narrativeSegments.map(

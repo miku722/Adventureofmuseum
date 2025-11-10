@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, Loader2 } from "lucide-react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { GlitchText } from "./GlitchText";
-import { useKeyboardContinue } from "../hooks/useKeyboardContinue";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { GlitchText } from "../ui/GlitchText";
+import { useKeyboardContinue } from "../../hooks/useKeyboardContinue";
 
 interface InteractiveSceneProps {
   title: string;

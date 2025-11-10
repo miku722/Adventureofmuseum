@@ -1,9 +1,12 @@
-import { GameCover } from "./components/GameCover";
+import { GameProvider } from "./contexts/GameContext";
+import { GameManager } from "./components/GameManager";
 
 export default function App() {
   return (
-    <div className="min-h-screen">
-      <GameCover />
-    </div>
+    <GameProvider>
+      <div className="min-h-screen">
+        <GameManager />
+      </div>
+    </GameProvider>
   );
 }

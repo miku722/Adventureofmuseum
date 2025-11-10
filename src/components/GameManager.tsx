@@ -9,21 +9,21 @@ import {
 } from "lucide-react";
 import exampleImage from "figma:asset/e9f84ea05cc517bde6db2eceec7da6c851a5c149.png";
 import { motion, AnimatePresence } from "motion/react";
-import { NameInput } from "./NameInput";
-import { ChapterIntro } from "./ChapterIntro";
-import { ChapterIntro2 } from "./ChapterIntro2";
-import { StoryNarration } from "./StoryNarration";
-import { CombinedScenes1to5 } from "./CombinedScenes1to5";
-import { TransitionAndChoice } from "./TransitionAndChoice";
-import { Chapter1Intro } from "./Chapter1Intro";
-import { MarketIntroNarration } from "./MarketIntroNarration";
-import { Chapter1Market } from "./Chapter1_Market";
-import { DebugPanel } from "./DebugPanel";
+import { NameInput } from "./ui/NameInput";
+import { PrologueChapterIntro } from "./chapters/PrologueChapterIntro";
+import { AlienWorldChapterIntro } from "./chapters/AlienWorldChapterIntro";
+import { PrologueNarrator } from "./narrative/PrologueNarrator";
+import { PrologueScenes } from "./scenes/PrologueScenes";
+import { PortalTransition } from "./scenes/PortalTransition";
+import { MarketChapterIntro } from "./chapters/MarketChapterIntro";
+import { MarketMissionBriefing } from "./narrative/MarketMissionBriefing";
+import { MarketLevel } from "./levels/MarketLevel";
+import { DebugPanel } from "./debug/DebugPanel";
 import { useDebugMode } from "../hooks/useDebugMode";
 import { GameState } from "../utils/gameSystemPrompt";
-import { GameStateDebugger } from "./GameStateDebugger";
+import { GameStateDebugger } from "./debug/GameStateDebugger";
 
-export function GameCover() {
+export function GameManager() {
   const [isMuted, setIsMuted] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [playerName, setPlayerName] = useState("");
@@ -94,7 +94,7 @@ export function GameCover() {
   // 调试信息
   useEffect(() => {
     console.log(
-      "GameCover - gamePhase:",
+      "GameManager - gamePhase:",
       gamePhase,
       "playerName:",
       playerName,
@@ -149,7 +149,7 @@ export function GameCover() {
       )}
 
       {gamePhase === "chapter" && (
-        <ChapterIntro
+        <PrologueChapterIntro
           chapterTitle="博物馆夜"
           onComplete={() => {
             setGamePhase("story");
@@ -158,7 +158,7 @@ export function GameCover() {
       )}
 
       {gamePhase === "story" && (
-        <StoryNarration
+        <PrologueNarrator
           onComplete={(narratives) => {
             // 将叙事片段添加到游戏状态
             if (narratives && narratives.length > 0) {
@@ -176,7 +176,7 @@ export function GameCover() {
       )}
 
       {gamePhase === "scenes" && (
-        <CombinedScenes1to5
+        <PrologueScenes
           playerName={playerName}
           gameState={gameState}
           onUpdateGameState={setGameState}
@@ -191,7 +191,7 @@ export function GameCover() {
       )}
 
       {gamePhase === "chapter2" && (
-        <ChapterIntro2
+        <AlienWorldChapterIntro
           chapterTitle="未知世界"
           subtitle="Chapter One"
           onComplete={() => setGamePhase("transitionChoice")}
@@ -199,7 +199,7 @@ export function GameCover() {
       )}
 
       {gamePhase === "transitionChoice" && (
-        <TransitionAndChoice
+        <PortalTransition
           playerName={playerName}
           onComplete={(choice) => {
             setPlayerChoice(choice);
@@ -209,21 +209,19 @@ export function GameCover() {
       )}
 
       {gamePhase === "chapter1_intro" && (
-        <Chapter1Intro
-          playerName={playerName}
-          playerChoice={playerChoice}
+        <MarketChapterIntro
           onComplete={() => setGamePhase("market_intro")}
         />
       )}
 
       {gamePhase === "market_intro" && (
-        <MarketIntroNarration
+        <MarketMissionBriefing
           onComplete={() => setGamePhase("chapter1_market")}
         />
       )}
 
       {gamePhase === "chapter1_market" && (
-        <Chapter1Market
+        <MarketLevel
           playerName={playerName}
           playerChoice={playerChoice}
           onComplete={() => setGamePhase("game")}
@@ -302,7 +300,7 @@ export function GameCover() {
                   THE PORTAL OF TIME
                 </p>
                 <p className="text-amber-400/70 tracking-wide">
-                  揭开历史的密 · 穿越时空的冒险
+                  揭开历史的秘密 · 穿越时空的冒险
                 </p>
               </motion.div>
 
