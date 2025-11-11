@@ -1,0 +1,12 @@
+找到了所有需要替换的 ${playerName}:
+1. 场景3 example 1: line 325
+2. 场景4 example 1: line 411
+3. 场景4 example 2: line 424
+4. 场景4 example 3: line 437
+5. 场景5 example 1: line 497
+6. 场景5 example 2: line 510
+7. 场景5 example 3: line 523
+8. market example 1: line 583
+9. market example 3: line 609
+
+这些都需要替换为 {玩家名字}

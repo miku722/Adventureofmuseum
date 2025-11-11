@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useKeyboardContinue } from "../hooks/useKeyboardContinue";
-import exampleImage from "figma:asset/e9f84ea05cc517bde6db2eceec7da6c851a5c149.png";
+import { Button } from "./ui/button";
+import { useTouchContinue } from "../hooks/useTouchContinue";
+import { ContinueHint } from "./ui/ContinueHint";
 
 interface Scene6ChoicePointProps {
   onComplete: (choice: "market" | "palace" | "bamboo") => void;
@@ -42,8 +43,8 @@ export function Scene6ChoicePoint({
     }
   }, [narrationIndex, narrations.length, showChoices]);
 
-  // 处理空格键和回车键 - 跳过到下一段
-  useKeyboardContinue(() => {
+  // 处理触控点击 - 跳过到下一段
+  useTouchContinue(() => {
     if (narrationIndex < narrations.length && !showChoices) {
       setNarrationIndex((prev) => prev + 1);
     }
@@ -241,25 +242,11 @@ export function Scene6ChoicePoint({
         </motion.div>
       </div>
 
-      {/* 底部空格键提示 - 仿照 NarrativeSceneBase */}
+      {/* 底部触控提示 */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4">
-        {/* 空格提示 - 仅在旁白阶段显示 */}
+        {/* 触控提示 - 仅在旁白阶段显示 */}
         {!showChoices && narrationIndex < narrations.length && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
-            className="flex items-center gap-2 text-amber-400/60"
-          >
-            <motion.span
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="px-3 py-1 border border-amber-400/30 rounded bg-amber-400/5 tracking-wider"
-            >
-              空格 / 回车
-            </motion.span>
-            <span className="tracking-wide">跳过</span>
-          </motion.div>
+          <ContinueHint action="跳过" />
         )}
       </div>
     </motion.div>

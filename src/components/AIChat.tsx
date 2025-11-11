@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { Send, Loader2 } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { GlitchText } from "./GlitchText";
 
 interface AIChatProps {
   onComplete: (finalMessage?: string) => void;
@@ -146,66 +145,35 @@ export function AIChat({
     }
   };
 
-  // 渲染带有乱码标记的文本
-  const renderMessageWithGlitch = (text: string) => {
-    const parts = text.split("<glitch/>");
-    if (parts.length === 1) {
-      // 没有乱码标记，直接返回文本
-      return text;
-    }
-    
-    // 有乱码标记，渲染为React元素
-    return parts.map((part, index) => (
-      <span key={index}>
-        {part}
-        {index < parts.length - 1 && (
-          <GlitchText className="text-red-400 mx-1" />
-        )}
-      </span>
-    ));
+  // 渲染消息文本
+  const renderMessage = (text: string) => {
+    // 直接返回文本，不再处理glitch标记
+    return text;
   };
 
   // 模拟响应（当API不可用时）
-  const generateMockResponse = (userInput: string): string => {
-    const input = userInput.toLowerCase();
-    
-    // 检查systemPrompt是否包含乱码提示（Scene4/5的特殊情况）
-    const shouldGlitch = systemPrompt.includes("<glitch/>");
-    
+  const generateMockResponse = (input: string): string => {
     // 根据用户输入提供更智能的响应
     if (input.includes("帮助") || input.includes("怎么办") || input.includes("不知道")) {
-      const base = `${playerName}，我理解你的困惑。作为守望者系统，我会尽力协助你。仔细观察周围的环境，寻找任何异常的线索。`;
-      return shouldGlitch ? base.replace("。", "<glitch/>。").replace("，", "<glitch/>，") : base;
+      return `${playerName}，我理解你的困惑。作为守望者系统，我会尽力协助你。仔细观察周围的环境，寻找任何异常的线索。`;
     } else if (input.includes("怕") || input.includes("害怕") || input.includes("恐惧")) {
-      const base = `勇气不是没有恐惧，而是面对恐惧依然前行。${playerName}，你被选中是有原因的。相信自己。`;
-      return shouldGlitch ? base.replace("。", "<glitch/>。") : base;
+      return `勇气不是没有恐惧，而是面对恐惧依然前行。${playerName}，你被选中是有原因的。相信自己。`;
     } else if (input.includes("是") || input.includes("好的") || input.includes("明白") || input.includes("知道")) {
-      const base = "很好。让我们继续调查。保持警惕，任何细节都可能是关键。";
-      return shouldGlitch ? `很好<glitch/>让我们继续<glitch/>保持警惕<glitch/>` : base;
+      return "很好。让我们继续调查。保持警惕，任何细节都可能是关键。";
     } else if (input.includes("什么") || input.includes("为什么") || input.includes("?") || input.includes("？")) {
-      const base = "这个问题很复杂。根据我的分析，这些现象与博物馆的文物有关。我们需要更多信息才能得出结论。";
-      return shouldGlitch ? base.replace("。", "<glitch/>。") : base;
+      return "这个问题很复杂。根据我的分析，这些现象与博物馆的文物有关。我们需要更多信息才能得出结论。";
     } else if (input.includes("文物") || input.includes("展品") || input.includes("古董")) {
-      const base = "没错，这些文物似乎拥有某种未知的能量。我的传感器检测到异常的能量波动。";
-      return shouldGlitch ? `没错<glitch/>这些文物<glitch/>未知的能量<glitch/>异常波动<glitch/>` : base;
+      return "没错，这些文物似乎拥有某种未知的能量。我的传感器检测到异常的能量波动。";
     } else {
       // 通用响应
-      const responses = shouldGlitch ? [
-        `我明白你的疑虑<glitch/>这确实<glitch/>超出了常理<glitch/>我们必须面对现实<glitch/>`,
-        `时间紧迫<glitch/>我们需要<glitch/>立即行动<glitch/>你准备好了吗<glitch/>`,
-        `这些文物的力量<glitch/>远超我们的想象<glitch/>必须小心<glitch/>`,
-        `相信你的直觉<glitch/>${playerName}<glitch/>你是唯一<glitch/>能够阻止这一切的人<glitch/>`,
-        `记住<glitch/>每一个选择<glitch/>都会影响<glitch/>最终的结果<glitch/>`,
-        `${playerName}<glitch/>作为守望者系统<glitch/>我会一直在这里<glitch/>协助你<glitch/>`,
-        `我的数据库<glitch/>显示<glitch/>类似事件<glitch/>极为罕见<glitch/>重大发现<glitch/>`,
-      ] : [
+      const responses = [
         "我明白你的疑虑。这确实超出了常理，但我们必须面对现实。",
-        "时间紧迫，我们需要立即采取行动。你准备好了吗？",
-        "这些文物的力量远超我们的想象。我们必须小心行事。",
-        `相信你的直觉，${playerName}。你是唯一能够阻止这一切的人。`,
-        "记住，每一个选择都会影响最终的结果。让我们继续吧。",
-        `${playerName}，作为守望者系统，我会一直在这里协助你。我们一起解开这个谜团。`,
-        "我的数据库显示，类似的事件在历史上极为罕见。这可能是一个重大发现。",
+        "时间紧迫，我们需要立即行动。你准备好了吗？",
+        "这些文物的力量远超我们的想象，必须小心。",
+        `相信你的直觉，${playerName}，你是唯一能够阻止这一切的人。`,
+        "记住，每一个选择都会影响最终的结果。",
+        `${playerName}，作为守望者系统，我会一直在这里协助你。`,
+        "我的数据库显示，类似事件极为罕见，这可能是重大发现。",
       ];
       return responses[Math.floor(Math.random() * responses.length)];
     }
@@ -245,7 +213,7 @@ export function AIChat({
                   }`}
                 >
                   <p className="dialogue-text">
-                    {renderMessageWithGlitch(message.content)}
+                    {renderMessage(message.content)}
                   </p>
                 </div>
               </motion.div>

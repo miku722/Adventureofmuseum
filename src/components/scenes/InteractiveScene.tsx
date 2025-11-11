@@ -1,10 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { GlitchText } from "../ui/GlitchText";
-import { useKeyboardContinue } from "../../hooks/useKeyboardContinue";
 
 interface InteractiveSceneProps {
   title: string;
@@ -45,7 +43,6 @@ export function InteractiveScene({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
-  const [canContinue, setCanContinue] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -117,15 +114,6 @@ export function InteractiveScene({
     }
   }, [showInput, isLoading]);
 
-  // 完成后按空格或回车继续
-  useKeyboardContinue(() => {
-    onComplete(
-      messages
-        .map((msg) => `${msg.role}: ${msg.content}`)
-        .join("\n"),
-    );
-  }, canContinue);
-
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -184,11 +172,6 @@ export function InteractiveScene({
         ...newMessages,
         { role: "assistant", content: assistantMessage },
       ]);
-
-      // 检查是否可以继续
-      if (messageCount + 1 >= minMessages) {
-        setCanContinue(true);
-      }
     } catch (error) {
       // 降级到模拟响应
       console.info("使用模拟AI响应模式");
@@ -197,10 +180,6 @@ export function InteractiveScene({
         ...newMessages,
         { role: "assistant", content: mockResponse },
       ]);
-
-      if (messageCount + 1 >= minMessages) {
-        setCanContinue(true);
-      }
     } finally {
       setIsLoading(false);
     }
@@ -215,74 +194,42 @@ export function InteractiveScene({
     }
   };
 
-  // 渲染带有乱码标记的文本
-  const renderMessageWithGlitch = (text: string) => {
-    const parts = text.split("<glitch/>");
-    if (parts.length === 1) {
-      return text;
-    }
-
-    return parts.map((part, index) => (
-      <span key={index}>
-        {part}
-        {index < parts.length - 1 && (
-          <GlitchText className="text-red-400 mx-1" />
-        )}
-      </span>
-    ));
+  // 渲染消息文本
+  const renderMessage = (text: string) => {
+    // 直接返回文本，不再处理glitch标记
+    return text;
   };
 
   // 模拟响应
   const generateMockResponse = (userInput: string): string => {
     const input = userInput.toLowerCase();
-    const shouldGlitch = systemPrompt.includes("<glitch/>");
 
     if (
       input.includes("帮助") ||
       input.includes("怎么办") ||
       input.includes("不知道")
     ) {
-      const base = `${playerName}，我理解你的困惑。作为守望者系统，我会尽力协助你。仔细观察周围的环境，寻找任何异常的线索。`;
-      return shouldGlitch
-        ? base
-            .replace("。", "<glitch/>。")
-            .replace("，", "<glitch/>，")
-        : base;
+      return `${playerName}，我理解你的困惑。作为守望者系统，我会尽力协助你。仔细观察周围的环境，寻找任何异常的线索。`;
     } else if (
       input.includes("怕") ||
       input.includes("害怕") ||
       input.includes("恐惧")
     ) {
-      const base = `勇气不是没有恐惧，而是面对恐惧依然前行。${playerName}，你被选中是有原因的。相信自己。`;
-      return shouldGlitch
-        ? base.replace("。", "<glitch/>。")
-        : base;
+      return `勇气不是没有恐惧，而是面对恐惧依然前行。${playerName}，你被选中是有原因的。相信自己。`;
     } else if (
       input.includes("是") ||
       input.includes("好的") ||
       input.includes("明白") ||
       input.includes("知道")
     ) {
-      const base =
-        "很好。让我们继续调查。保持警惕，任何细节都可能是关键。";
-      return shouldGlitch
-        ? `很好<glitch/>让我们继续<glitch/>保持警惕<glitch/>`
-        : base;
+      return "很好。让我们继续调查。保持警惕，任何细节都可能是关键。";
     } else {
-      const responses = shouldGlitch
-        ? [
-            `我明白你的疑虑<glitch/>这确实<glitch/>超出了常理<glitch/>我们必须面对现实<glitch/>`,
-            `时间紧迫<glitch/>我们需要<glitch/>立即行动<glitch/>你准备好了吗<glitch/>`,
-            `相信你的直觉<glitch/>${playerName}<glitch/>你是唯一<glitch/>能够阻止这一切的人<glitch/>`,
-          ]
-        : [
-            "我明白你的疑虑。这确实超出了常理，但我们必须面对现实。",
-            "时间紧迫，我们需要立即采取行动。你准备好了吗？",
-            `相信你的直觉，${playerName}。你是唯一能够阻止这一切的人。`,
-          ];
-      return responses[
-        Math.floor(Math.random() * responses.length)
+      const responses = [
+        "我明白你的疑虑。这确实超出了常理，但我们必须面对现实。",
+        "时间紧迫，我们需要立即行动。你准备好了吗？",
+        `相信你的直觉，${playerName}，你是唯一能够阻止这一切的人。`,
       ];
+      return responses[Math.floor(Math.random() * responses.length)];
     }
   };
 
@@ -388,9 +335,7 @@ export function InteractiveScene({
                         </span>
                       </div>
                       <p className="dialogue-text text-lg md:text-xl">
-                        {renderMessageWithGlitch(
-                          message.content,
-                        )}
+                        {renderMessage(message.content)}
                       </p>
                     </motion.div>
                   ))}
@@ -522,24 +467,6 @@ export function InteractiveScene({
           />
         </motion.div>
       </div>
-
-      {/* 继续按钮提示 */}
-      {canContinue && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-8 right-8 z-[60] flex items-center gap-3 bg-black/80 backdrop-blur-sm border border-amber-600/30 rounded-lg px-6 py-3 shadow-2xl"
-        >
-          <motion.span
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="hint-text px-3 py-1 border border-amber-400/30 rounded bg-amber-400/5 text-amber-400"
-          >
-            空格/回车
-          </motion.span>
-          <span className="hint-text text-amber-200">继续</span>
-        </motion.div>
-      )}
     </motion.div>
   );
 }

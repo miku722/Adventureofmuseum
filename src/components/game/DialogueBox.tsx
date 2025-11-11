@@ -15,6 +15,7 @@ import {
   updateNPCMemoryAfterChat,
   npcMemoryManager,
 } from "../../utils/npcMemorySystem";
+import { ContinueHint } from "../ui/ContinueHint";
 
 interface Message {
   role: "user" | "assistant";
@@ -431,20 +432,21 @@ export function DialogueBox({
 
               {/* 底部操作栏 */}
               <div className="bg-slate-900/50 border-t border-amber-600/30 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-amber-400/60 text-sm">
-                  <span className="px-2 py-1 border border-amber-400/30 rounded bg-amber-400/5">
-                    空格 / 回车
-                  </span>
-                  <span>
-                    {isTyping
+                <ContinueHint 
+                  action={
+                    isTyping
                       ? "跳过"
                       : currentIndex < validDialogue.length - 1
                         ? "继续"
                         : isFirstMeet
                           ? "开始对话"
-                          : "结束对话"}
-                  </span>
-                </div>
+                          : "结束对话"
+                  }
+                  borderColor="border-amber-400/30"
+                  bgColor="bg-amber-400/5"
+                  textColor="text-amber-400"
+                  className="text-sm"
+                />
 
                 <div className="flex items-center gap-3">
                   <span className="text-amber-400/60 text-sm">

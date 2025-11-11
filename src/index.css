@@ -525,6 +525,10 @@
     top: calc(var(--spacing) * 4);
   }
 
+  .top-8 {
+    top: calc(var(--spacing) * 8);
+  }
+
   .top-20 {
     top: calc(var(--spacing) * 20);
   }
@@ -609,16 +613,16 @@
     z-index: 70;
   }
 
+  .z-\[100\] {
+    z-index: 100;
+  }
+
   .z-\[9999\] {
     z-index: 9999;
   }
 
   .col-span-2 {
     grid-column: span 2 / span 2;
-  }
-
-  .mx-1 {
-    margin-inline: calc(var(--spacing) * 1);
   }
 
   .mx-auto {
@@ -2086,10 +2090,6 @@
     text-align: left;
   }
 
-  .font-mono {
-    font-family: var(--font-mono);
-  }
-
   .text-2xl {
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
@@ -2777,6 +2777,18 @@
     @supports (color: color-mix(in lab, red, red)) {
       .hover\:bg-black\/60:hover {
         background-color: color-mix(in oklab, var(--color-black) 60%, transparent);
+      }
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:bg-black\/80:hover {
+      background-color: #000c;
+    }
+
+    @supports (color: color-mix(in lab, red, red)) {
+      .hover\:bg-black\/80:hover {
+        background-color: color-mix(in oklab, var(--color-black) 80%, transparent);
       }
     }
   }

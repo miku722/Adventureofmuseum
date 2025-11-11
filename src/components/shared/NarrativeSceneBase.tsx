@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "../ui/button";
-import { useKeyboardContinue } from "../../hooks/useKeyboardContinue";
+import { useTouchContinue } from "../../hooks/useTouchContinue";
+import { ContinueHint } from "../ui/ContinueHint";
 
 interface NarrativeSegment {
   text: string;
@@ -77,31 +78,16 @@ export function NarrativeSceneBase({
     );
   }, [currentSegment, showContinueButton]);
 
-  // 处理空格键和回车键 - 按钮显示后继续游戏
-  useKeyboardContinue(() => {
-    if (showContinueButton) {
-      console.log("空格/回车键触发继续");
-      onCompleteRef.current();
-    }
-  }, showContinueButton);
-
-  // 处理空格键和回车键 - 跳过到下一段
-  useKeyboardContinue(() => {
+  // 处理触控点击 - 跳过到下一段（仅在未显示按钮时生效）
+  useTouchContinue(() => {
     if (currentSegment < segments.length) {
       setCurrentSegment((prev) => prev + 1);
     }
   }, !showContinueButton && currentSegment < segments.length);
 
-  // 自动播放定时器
+  // 所有段落显示完毕后，显示继续按钮
   useEffect(() => {
-    if (currentSegment < segments.length) {
-      // 每段文字显示4秒
-      const timer = setTimeout(() => {
-        setCurrentSegment((prev) => prev + 1);
-      }, 4000);
-      return () => clearTimeout(timer);
-    } else if (!showContinueButton) {
-      // 所有段落显示完毕，1秒后显示继续按钮
+    if (currentSegment >= segments.length && !showContinueButton) {
       const buttonTimer = setTimeout(() => {
         setShowContinueButton(true);
       }, 1000);
@@ -300,42 +286,14 @@ export function NarrativeSceneBase({
           </motion.div>
         )}
 
-        {/* 空格或回车键提示 */}
+        {/* 触控点击提示 - 跳过 */}
         {!showContinueButton && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 1 }}
-            className={`flex items-center gap-2 ${config.hintColor}`}
-          >
-            <motion.span
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className={`px-3 py-1 border ${config.hintBorderColor} rounded ${config.hintBgColor} tracking-wider`}
-            >
-              空格 / 回车
-            </motion.span>
-            <span className="tracking-wide">跳过</span>
-          </motion.div>
-        )}
-
-        {/* 按钮显示后的空格或回车提示 */}
-        {showContinueButton && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-            className={`flex items-center gap-2 ${config.hintColor}`}
-          >
-            <motion.span
-              animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className={`px-3 py-1 border ${config.hintBorderColor} rounded ${config.hintBgColor} tracking-wider`}
-            >
-              空格 / 回车
-            </motion.span>
-            <span className="tracking-wide">继续</span>
-          </motion.div>
+          <ContinueHint 
+            action="跳过"
+            borderColor={config.hintBorderColor}
+            bgColor={config.hintBgColor}
+            textColor={config.hintColor}
+          />
         )}
       </div>
     </motion.div>

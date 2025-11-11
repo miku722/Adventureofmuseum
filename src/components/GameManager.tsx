@@ -159,6 +159,7 @@ export function GameManager() {
 
       {gamePhase === "story" && (
         <PrologueNarrator
+          playerName={playerName}
           onComplete={(narratives) => {
             // 将叙事片段添加到游戏状态
             if (narratives && narratives.length > 0) {

@@ -7,7 +7,7 @@ interface MarketMissionBriefingProps {
 
 const narrativeSegments = [
   {
-    text: '「异常能量波动检测到。时空层：北宋。',
+    text: '异常能量波动检测到。时空层：北宋。',
   },
   {
     text: '文物名称：青铜鼎。',
@@ -16,16 +16,7 @@ const narrativeSegments = [
     text: '状态：失联。',
   },
   {
-    text: "请立即派遣守护员执行'历史修复'任务。」",
-  },
-  {
     text: '你坠入集市，落地时尘土飞扬，耳边是嘈杂的人声与商贩叫卖。',
-  },
-  {
-    text: '「当前时间节点：北宋汴梁。',
-  },
-  {
-    text: "主异常源：被遗忘的'鼎'。",
   },
   {
     text: "警告：该区域存在'供养机制失衡'，饥饿与贪婪蔓延。",

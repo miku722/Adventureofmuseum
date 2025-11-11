@@ -2,6 +2,9 @@ import { useState } from "react";
 import { InteractiveScene } from "./InteractiveScene";
 import monitorRoomImage from "figma:asset/71827ecda27eec05c028e1e545a8cb5ad0c09ff5.png";
 import { GameState, buildGlobalSystemPrompt, addSceneContext, SCENE_CONTEXTS } from "../../utils/gameSystemPrompt";
+import { motion } from "motion/react";
+import { Button } from "../ui/button";
+import { SkipForward } from "lucide-react";
 
 interface PrologueScenesProps {
   onComplete: () => void;
@@ -17,6 +20,17 @@ export function PrologueScenes({
   onUpdateGameState,
 }: PrologueScenesProps) {
   const [currentScene, setCurrentScene] = useState(1);
+  
+  // 跳过当前场景，进入下一个场景
+  const handleSkipCurrentScene = () => {
+    // 如果是最后一个场景，则完成整个序章
+    if (currentScene >= scenes.length) {
+      onComplete();
+    } else {
+      // 否则进入下一个场景
+      setCurrentScene(currentScene + 1);
+    }
+  };
 
   // 场景配置
   const scenes = [
@@ -70,7 +84,7 @@ export function PrologueScenes({
 所有文物化作流光，违背重力地被吸向裂缝...
 
 物理定律已失效！`,
-      initialMessage: `${playerName}！<glitch/>警告<glitch/>时空异常<glitch/>检测到维度裂缝！展厅中央...天哪，所有文物都在被吸入！快离开那里！`,
+      initialMessage: `${playerName}！警告！时空异常！检测到维度裂缝！展厅中央...天哪，所有文物都在被吸入！快离开那里！`,
       minMessages: 3,
     },
     {
@@ -89,7 +103,7 @@ export function PrologueScenes({
 那深渊正凝视着你...
 
 这是你即将被吞没的最后一刻！`,
-      initialMessage: `${playerName}！不要放手！我<glitch/>我检测到你的生命信号<glitch/>在减弱！裂缝的引力太强了<glitch/>系统警告<glitch/>也许...也许这就是你的使命？那些文物<glitch/>它们选择了你！`,
+      initialMessage: `${playerName}！不要放手！我检测到你的生命信号在减弱！裂缝的引力太强了！系统警告！也许...也许这就是你的使命？那些文物...它们选择了你！`,
       minMessages: 2,
     },
   ];
@@ -133,17 +147,36 @@ export function PrologueScenes({
   };
 
   return (
-    <InteractiveScene
-      key={currentScene} // 重要：每次场景切换时重新挂载组件
-      title={currentSceneConfig.title}
-      description={currentSceneConfig.description}
-      imagePlaceholder="监控室屏幕"
-      imageUrl={monitorRoomImage}
-      systemPrompt={buildSystemPrompt()}
-      initialMessage={currentSceneConfig.initialMessage}
-      playerName={playerName}
-      minMessages={currentSceneConfig.minMessages}
-      onComplete={handleSceneComplete}
-    />
+    <>
+      {/* 跳过按钮 */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="fixed top-8 right-8 z-[100]"
+      >
+        <Button
+          onClick={handleSkipCurrentScene}
+          variant="outline"
+          className="bg-black/60 backdrop-blur-sm border-amber-600/50 text-amber-200 hover:bg-black/80 hover:border-amber-400 hover:text-amber-100"
+        >
+          <SkipForward className="mr-2 h-4 w-4" />
+          跳过本节
+        </Button>
+      </motion.div>
+
+      {/* 场景内容 */}
+      <InteractiveScene
+        key={currentScene} // 重要：每次场景切换时重新挂载组件
+        title={currentSceneConfig.title}
+        description={currentSceneConfig.description}
+        imagePlaceholder="监控室屏幕"
+        imageUrl={monitorRoomImage}
+        systemPrompt={buildSystemPrompt()}
+        initialMessage={currentSceneConfig.initialMessage}
+        playerName={playerName}
+        minMessages={currentSceneConfig.minMessages}
+        onComplete={handleSceneComplete}
+      />
+    </>
   );
 }
