@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "motion/react";
 import { Input } from "./input";
+import { useTouchContinue } from "../../hooks/useTouchContinue";
+import { ContinueHint } from "./ContinueHint";
 
 interface NameInputProps {
   onComplete: (name: string) => void;
@@ -51,6 +53,7 @@ function TypewriterText({ text, delay = 0, onComplete }: { text: string; delay?:
 export function NameInput({ onComplete }: NameInputProps) {
   const [name, setName] = useState("");
   const [isComplete, setIsComplete] = useState(false);
+  const [canContinue, setCanContinue] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -61,13 +64,17 @@ export function NameInput({ onComplete }: NameInputProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    if (e.key === "Enter" && name.trim()) {
+  // 监听名字输入，启用继续功能
+  useEffect(() => {
+    setCanContinue(name.trim().length > 0);
+  }, [name]);
+
+  // 处理触控点击继续
+  useTouchContinue(() => {
+    if (canContinue && !isComplete) {
       setIsComplete(true);
     }
-  };
+  }, canContinue && !isComplete);
 
   const handleTypewriterComplete = () => {
     setTimeout(() => {
@@ -115,7 +122,6 @@ export function NameInput({ onComplete }: NameInputProps) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onKeyDown={handleKeyDown}
             placeholder=""
             maxLength={20}
             className="bg-transparent border-0 border-b-2 border-amber-600/50 rounded-none text-center text-amber-100 text-2xl md:text-3xl px-4 py-6 focus-visible:ring-0 focus-visible:border-amber-400 placeholder:text-amber-700/40 transition-all"
@@ -132,15 +138,10 @@ export function NameInput({ onComplete }: NameInputProps) {
           />
         </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: name.length > 0 ? 1 : 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-amber-400/60 tracking-wide"
-        >
-          按回车键继续
-        </motion.p>
-
+        {/* 触控点击继续提示 */}
+        {canContinue && (
+          <ContinueHint action="继续" />
+        )}
 
         {/* Ambient glow effect */}
         <motion.div

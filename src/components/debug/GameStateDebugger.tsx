@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Bug, ChevronDown, ChevronUp } from "lucide-react";
 import { GameState } from "../../utils/gameSystemPrompt";
@@ -15,35 +15,40 @@ export function GameStateDebugger({ gameState }: GameStateDebuggerProps) {
     return null; // 生产环境不显示
   }
 
+  // 监听 Ctrl+G 快捷键
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'g') {
+        e.preventDefault();
+        setIsOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
   return (
     <div className="fixed bottom-4 right-4 z-[9999]">
-      {/* 切换按钮 */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg transition-all"
-        title="游戏状态调试器"
-      >
-        <Bug className="w-5 h-5" />
-      </button>
-
-      {/* 调试面板 */}
+      {/* 调试面板 - 无按钮，仅通过 Ctrl+G 调出 */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="absolute bottom-16 right-0 w-96 max-h-[600px] bg-gray-900 border border-purple-500 rounded-lg shadow-2xl overflow-hidden"
+            className="w-96 max-h-[600px] bg-gray-900 border border-purple-500 rounded-lg shadow-2xl overflow-hidden"
           >
             {/* 标题 */}
             <div className="bg-purple-600 p-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bug className="w-4 h-4" />
                 <span className="text-sm">游戏状态调试器</span>
+                <span className="text-xs text-purple-200">(Ctrl+G)</span>
               </div>
               <button
                 onClick={() => setIsOpen(false)}

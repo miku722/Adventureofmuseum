@@ -30,6 +30,8 @@ export function GameCover() {
   const [playerChoice, setPlayerChoice] = useState<"market" | "palace" | "bamboo" | null>(null);
   const [showChapterIntro, setShowChapterIntro] =
     useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [gamePhase, setGamePhase] = useState<
     | "cover"
     | "name"
@@ -106,36 +108,97 @@ export function GameCover() {
       {/* 游戏状态调试器 */}
       <GameStateDebugger gameState={gameState} />
 
-      {/* 调试面板 */}
+      {/* 设置弹窗 */}
       <AnimatePresence>
-        {debugMode && (
-          <DebugPanel
-            currentPhase={gamePhase}
-            onPhaseChange={(phase) => {
-              setGamePhase(phase);
-              // 如果跳转到需要玩家名字的场景，设置默认名字
-              if (
-                !playerName &&
-                [
-                  "chapter",
-                  "story",
-                  "scenes",
-                  "transitionChoice",
-                  "chapter2",
-                  "chapter1_intro",
-                  "market_intro",
-                  "chapter1_market",
-                  "game",
-                ].includes(phase)
-              ) {
-                setPlayerName("调试玩家");
-              }
-            }}
-            onClose={() => {
-              // 不需要手动关闭，按Ctrl+D会自动关闭
-            }}
-            playerName={playerName}
-          />
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center"
+            onClick={() => setShowSettings(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-900 border-2 border-amber-600/50 rounded-lg p-8 max-w-md w-full mx-4"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl text-amber-200 flex items-center gap-2">
+                  <Settings className="w-6 h-6" />
+                  设置
+                </h2>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="text-amber-400 hover:text-amber-200 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-4 text-amber-100">
+                <div className="flex items-center justify-between p-3 bg-black/40 rounded">
+                  <span>音效</span>
+                  <button
+                    onClick={() => setIsMuted(!isMuted)}
+                    className={`px-4 py-1 rounded ${isMuted ? 'bg-gray-700' : 'bg-amber-600'} transition-colors`}
+                  >
+                    {isMuted ? '关闭' : '开启'}
+                  </button>
+                </div>
+                <div className="p-3 bg-black/40 rounded text-center text-amber-400/60">
+                  更多设置开发中...
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 成就弹窗 */}
+      <AnimatePresence>
+        {showAchievements && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center"
+            onClick={() => setShowAchievements(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-900 border-2 border-amber-600/50 rounded-lg p-8 max-w-md w-full mx-4"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl text-amber-200 flex items-center gap-2">
+                  <Trophy className="w-6 h-6" />
+                  成就
+                </h2>
+                <button
+                  onClick={() => setShowAchievements(false)}
+                  className="text-amber-400 hover:text-amber-200 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="space-y-3">
+                <div className="p-4 bg-black/40 rounded border border-amber-600/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Trophy className="w-5 h-5 text-amber-400" />
+                    <span className="text-amber-200">冒险开始</span>
+                  </div>
+                  <p className="text-sm text-amber-400/60">开始你的第一次冒险</p>
+                </div>
+                <div className="p-3 bg-black/40 rounded text-center text-amber-400/60">
+                  更多成就等待解锁...
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -335,6 +398,7 @@ export function GameCover() {
                 <Button
                   variant="outline"
                   size="lg"
+                  onClick={() => setShowAchievements(true)}
                   className="bg-black/40 border-amber-600/50 text-amber-200 hover:bg-black/60 hover:border-amber-400 hover:text-amber-100 backdrop-blur-sm"
                 >
                   <Trophy className="mr-2 h-4 w-4" />
@@ -343,6 +407,7 @@ export function GameCover() {
                 <Button
                   variant="outline"
                   size="lg"
+                  onClick={() => setShowSettings(true)}
                   className="bg-black/40 border-amber-600/50 text-amber-200 hover:bg-black/60 hover:border-amber-400 hover:text-amber-100 backdrop-blur-sm"
                 >
                   <Settings className="mr-2 h-4 w-4" />
