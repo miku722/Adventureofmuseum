@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 
 interface ContinueHintProps {
-  action?: "跳过" | "继续";
+  action?: "跳过" | "继续" | "进入下一节";
   borderColor?: string;
   bgColor?: string;
   textColor?: string;
@@ -13,7 +13,7 @@ interface ContinueHintProps {
  * 显示触控点击提示，遵循DRY原则
  */
 export function ContinueHint({
-  action = "继续",
+  action = "进入下一节",
   borderColor = "border-amber-400/30",
   bgColor = "bg-amber-400/5",
   textColor = "text-amber-400",

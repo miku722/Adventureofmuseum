@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, SkipForward } from "lucide-react";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { useTouchContinue } from "../../hooks/useTouchContinue";
+import { ContinueHint } from "../ui/ContinueHint";
 
 interface InteractiveSceneProps {
   title: string;
@@ -43,6 +45,7 @@ export function InteractiveScene({
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
+  const [showContinueHint, setShowContinueHint] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -113,6 +116,26 @@ export function InteractiveScene({
       inputRef.current?.focus();
     }
   }, [showInput, isLoading]);
+
+  // 检查是否满足场景完成条件
+  useEffect(() => {
+    if (messageCount >= minMessages) {
+      // 达到最小消息数，显示“触摸继续”提示
+      setShowInput(false);
+      setShowContinueHint(true);
+    }
+  }, [messageCount, minMessages]);
+
+  // 使用自定义Hook处理触控跳过
+  useTouchContinue(() => {
+    if (showContinueHint) {
+      // 将完整的对话历史传递给 onComplete
+      const fullHistory = messages
+        .map((m) => `${m.role}: ${m.content}`)
+        .join("\n");
+      onComplete(fullHistory);
+    }
+  });
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -193,6 +216,17 @@ export function InteractiveScene({
       sendMessage();
     }
   };
+
+  // 检查是否满足场景完成条件
+  // useEffect(() => {
+  //   if (messageCount >= minMessages) {
+  //     // 达到最小消息数，自动完成
+  //     const fullHistory = messages
+  //       .map((m) => `${m.role}: ${m.content}`)
+  //       .join("\n");
+  //     onComplete(fullHistory);
+  //   }
+  // }, [messageCount, minMessages, onComplete, messages]);
 
   // 渲染消息文本
   const renderMessage = (text: string) => {
@@ -389,6 +423,18 @@ export function InteractiveScene({
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* “触摸继续”提示 */}
+          {showContinueHint && (
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="mt-6 pt-4 text-center"
+            >
+              <ContinueHint text="触摸屏幕进入下一节" />
+            </motion.div>
+          )}
 
           {/* 环境光效 */}
           <motion.div
