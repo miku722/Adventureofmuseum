@@ -1469,6 +1469,16 @@
     }
   }
 
+  .bg-amber-400\/80 {
+    background-color: color-mix(in srgb, oklch(.828 .189 84.429) 80%, transparent);
+  }
+
+  @supports (color: color-mix(in lab, red, red)) {
+    .bg-amber-400\/80 {
+      background-color: color-mix(in oklab, var(--color-amber-400) 80%, transparent);
+    }
+  }
+
   .bg-amber-500\/20 {
     background-color: color-mix(in srgb, oklch(.769 .188 70.08) 20%, transparent);
   }
@@ -1669,10 +1679,6 @@
 
   .bg-gray-900 {
     background-color: var(--color-gray-900);
-  }
-
-  .bg-green-400 {
-    background-color: var(--color-green-400);
   }
 
   .bg-input-background {

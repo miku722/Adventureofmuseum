@@ -78,12 +78,6 @@ export function ThinkingMessage({
             {isThinking ? "思考中..." : "思考完成"}
           </span>
 
-          {!isThinking && thinkingContent.length > 0 && !isExpanded && (
-            <span className="text-xs text-slate-500 ml-1">
-              (1 个步骤)
-            </span>
-          )}
-
           <div className="ml-auto flex items-center gap-2">
             {isThinking && !isExpanded && (
               <div className="flex gap-1">
@@ -175,23 +169,27 @@ export function ThinkingMessage({
                 {!isThinking && (
                   <div className="space-y-2">
                     {thinkingContent.length > 0 ? (
-                      <div className="space-y-2">
-                        <motion.div
-                          key={0}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0 * 0.1 }}
-                          className="flex items-start gap-2 text-xs text-slate-300"
-                        >
-                          <div className="mt-1.5">
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="w-1.5 h-1.5 rounded-full bg-green-400"
-                            />
-                          </div>
-                          <p className="flex-1 leading-relaxed whitespace-pre-wrap">{thinkingContent}</p>
-                        </motion.div>
+                      <div className="space-y-3">
+                        {/* 按段落分割内容 */}
+                        {thinkingContent.split(/\n\n+/).filter(p => p.trim()).map((paragraph, index) => (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="flex items-start gap-2 text-xs text-slate-300"
+                          >
+                            <div className="mt-1.5">
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ delay: index * 0.1 + 0.1 }}
+                                className="w-1.5 h-1.5 rounded-full bg-amber-400/80"
+                              />
+                            </div>
+                            <p className="flex-1 leading-relaxed">{paragraph.trim()}</p>
+                          </motion.div>
+                        ))}
                       </div>
                     ) : (
                       <div className="space-y-2">
