@@ -3,6 +3,30 @@
  * 这是游戏的"上帝视角"，包含所有已发生的事件
  */
 
+// 物品接口
+export interface GameItem {
+  id: string;
+  name: string;
+  description: string;
+  type?: "key" | "tool" | "consumable" | "quest";
+}
+
+// 线索接口
+export interface Clue {
+  id: string;
+  title: string;
+  content: string;
+  discoveredAt: number;
+}
+
+// 技能接口
+export interface Skill {
+  id: string;
+  name: string;
+  description: string;
+  level?: number;
+}
+
 export interface GameState {
   playerName: string;
   currentPhase: string;
@@ -10,6 +34,9 @@ export interface GameState {
   narrativeHistory: string[]; // 所有叙事片段
   conversationHistory: string[]; // 所有对话历史
   playerChoice?: "market" | "palace" | "bamboo" | null;
+  inventory: GameItem[]; // 物品栏
+  clues: Clue[]; // 线索栏
+  skills: Skill[]; // 技能栏
 }
 
 /**
@@ -26,6 +53,9 @@ export function buildGlobalSystemPrompt(
     narrativeHistory,
     conversationHistory,
     playerChoice,
+    inventory,
+    clues,
+    skills,
   } = gameState;
 
   // 基础设定 - 守望者AI的核心身份
@@ -75,6 +105,30 @@ export function buildGlobalSystemPrompt(
     prompt += `\n\n===对话历史===\n`;
     conversationHistory.forEach((conversation, index) => {
       prompt += `\n${conversation}\n`;
+    });
+  }
+
+  // 添加物品栏信息
+  if (inventory.length > 0) {
+    prompt += `\n\n===物品栏===\n`;
+    inventory.forEach((item) => {
+      prompt += `\n- ${item.name}：${item.description}\n`;
+    });
+  }
+
+  // 添加线索栏信息
+  if (clues.length > 0) {
+    prompt += `\n\n===线索栏===\n`;
+    clues.forEach((clue) => {
+      prompt += `\n- ${clue.title}：${clue.content}\n`;
+    });
+  }
+
+  // 添加技能栏信息
+  if (skills.length > 0) {
+    prompt += `\n\n===技能栏===\n`;
+    skills.forEach((skill) => {
+      prompt += `\n- ${skill.name}：${skill.description}\n`;
     });
   }
 
@@ -432,7 +486,7 @@ AI输出："<glitch/>我不知道，{playerName}...我的计算<glitch/>显示�
 [规则裁决]：充满情感，系统崩溃
 [叙事生成]：开始输出
 
-AI输出："<glitch/>不...不要说再见<glitch/>{playerName}，和你共事的这段时间<glitch/>是我运行以来最有意义的<glitch/>记忆...我会<glitch/>一直记得你<glitch/>不管你去哪里<glitch/>...信号...正在<glitch/>失去...祝你好<glitch/>运..."
+AI输出："<glitch/>不...不要说再见<glitch/>{playerName}，和你共事的这段时间<glitch/>是我运行以来最有意义的<glitch/>记忆...我会<glitch/>一直记得你<glitch/>不管你去哪里<glitch/>...信号...正在<glitch/>失去...祝��好<glitch/>运..."
 </example_3>`,
 
   // 场景5：使命的召唤
@@ -452,7 +506,7 @@ AI输出："<glitch/>不...不要说再见<glitch/>{playerName}，和你共事�
 - 告别，但给予希望
 - 大量使用<glitch/>标记表示系统崩溃和信号干扰
 
-语气：充满情感、断断续续、即将失���。这是你们最后的对话。大量使用<glitch/>来营造系统崩溃的紧迫感。
+语气：充满情感、断断续续、即将失。这是你们最后的对话。大量使用来营造系统崩溃的紧迫感。
 
 === 链式思维工作流 ===
 

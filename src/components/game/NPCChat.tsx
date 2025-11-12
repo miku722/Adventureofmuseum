@@ -5,7 +5,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Send, X, MessageCircle } from "lucide-react";
+import {
+  Send,
+  X,
+  MessageCircle,
+  Package,
+  Search,
+  Zap,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ScrollArea } from "../ui/scroll-area";
@@ -14,6 +21,13 @@ import {
   updateNPCMemoryAfterChat,
   npcMemoryManager,
 } from "../../utils/npcMemorySystem";
+import { ThinkingProcess } from "./ThinkingProcess";
+import {
+  GameState,
+  GameItem,
+  Clue,
+  Skill,
+} from "../../utils/gameSystemPrompt";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,6 +38,10 @@ interface Message {
 interface NPCChatProps {
   npcId: string;
   playerName: string;
+  gameState: GameState;
+  onUpdateGameState: (
+    updater: (prev: GameState) => GameState,
+  ) => void;
   onClose: () => void;
   isOpen: boolean;
   // 可选：当对话达到某些条件时触发
@@ -33,6 +51,8 @@ interface NPCChatProps {
 export function NPCChat({
   npcId,
   playerName,
+  gameState,
+  onUpdateGameState,
   onClose,
   isOpen,
   onDialogueCondition,
@@ -42,6 +62,17 @@ export function NPCChat({
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // 监听 isLoading 状态变化
+  useEffect(() => {
+    console.log("🔄 [NPCChat] isLoading 状态变化:", isLoading);
+    console.log("├─ NPC ID:", npcId);
+    console.log("├─ 时间:", new Date().toLocaleTimeString());
+    console.log(
+      "└─ 状态:",
+      isLoading ? "🟢 加载中..." : "🔴 空闲",
+    );
+  }, [isLoading, npcId]);
 
   // 获取NPC记忆
   const npcMemory = npcMemoryManager.getMemory(npcId);
@@ -90,8 +121,10 @@ export function NPCChat({
 
   // NPC主动打招呼
   const sendInitialGreeting = async () => {
+    console.log("👋 [NPCChat] 开始发送初始问候...");
     setIsLoading(true);
     try {
+      console.log("📝 [NPCChat] 构建 SystemPrompt...");
       const systemPrompt = getNPCPrompt(npcId, playerName);
       const greetingPrompt = `${systemPrompt}\n\n这是${playerName}第一次遇见你，请主动打个招呼并简单介绍自己。记住要符合你的身份和性格。`;
 
@@ -100,6 +133,7 @@ export function NPCChat({
         "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
       const API_KEY = "sk-e3c846e265644474ab7b47271e32be0c";
 
+      console.log("🌐 [NPCChat] 调用 API...");
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
@@ -128,6 +162,11 @@ export function NPCChat({
       const data = await response.json();
       const greeting = data.choices[0].message.content;
 
+      console.log(
+        "✅ [NPCChat] 收到 API 响应:",
+        greeting.substring(0, 50) + "...",
+      );
+
       const newMessage: Message = {
         role: "assistant",
         content: greeting,
@@ -135,10 +174,11 @@ export function NPCChat({
       };
 
       setMessages([newMessage]);
+      console.log("💬 [NPCChat] 初始问候完成");
 
       // 不需要记录初始问候到历史中，因为它不是对话的一部分
     } catch (error) {
-      console.error("获取NPC问候失败:", error);
+      console.error("❌ [NPCChat] 获取NPC问候失败:", error);
 
       // 根据不同的错误类型给出不同的提示
       let errorMessage = "（NPC似乎有些恍惚，没有说话...）";
@@ -166,6 +206,8 @@ export function NPCChat({
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
 
+    console.log("📤 [NPCChat] 用户发送消息:", input.trim());
+
     const userMessage: Message = {
       role: "user",
       content: input.trim(),
@@ -176,6 +218,8 @@ export function NPCChat({
     setInput("");
     setIsLoading(true);
 
+    console.log("🚀 [NPCChat] 开始处理用户消息...");
+
     try {
       // API配置
       const API_URL =
@@ -183,6 +227,7 @@ export function NPCChat({
       const API_KEY = "sk-e3c846e265644474ab7b47271e32be0c";
 
       // 获取NPC的SystemPrompt
+      console.log("📝 [NPCChat] 获取 SystemPrompt...");
       const systemPrompt = getNPCPrompt(npcId, playerName);
 
       // 构建对话消息
@@ -192,6 +237,9 @@ export function NPCChat({
           role: msg.role,
           content: msg.content,
         }));
+
+      console.log("🌐 [NPCChat] 调用 API...");
+      console.log("├─ 消息数量:", conversationMessages.length);
 
       const response = await fetch(API_URL, {
         method: "POST",
@@ -220,7 +268,126 @@ export function NPCChat({
       }
 
       const data = await response.json();
-      const npcResponse = data.choices[0].message.content;
+      let npcResponse = data.choices[0].message.content;
+
+      console.log(
+        "✅ [NPCChat] 收到 NPC 响应:",
+        npcResponse.substring(0, 80) + "...",
+      );
+      console.log("🔍 [NPCChat] 解析特殊标记...");
+
+      // 解析物品 - 检测 [获得物品：xxx] 标记
+      const itemRegex = /\[获得物品：([^\]]+)\]/g;
+      const itemMatches = [...npcResponse.matchAll(itemRegex)];
+
+      if (itemMatches.length > 0) {
+        console.log(
+          `📦 [NPCChat] 发现 ${itemMatches.length} 个物品标记`,
+        );
+        itemMatches.forEach((match) => {
+          const itemName = match[1].trim();
+          // 添加物品到玩家背包
+          const newItem: GameItem = {
+            id: `item_${Date.now()}_${Math.random()}`,
+            name: itemName,
+            description: `从${npcMemory.npcId}处获得`,
+            type: "quest",
+          };
+
+          onUpdateGameState((prev) => ({
+            ...prev,
+            inventory: [...prev.inventory, newItem],
+          }));
+
+          console.log(`  ✨ [物品获得] ${itemName}`);
+        });
+      }
+
+      // 解析线索 - 检测 [线索：标题|内容] 标记
+      const clueRegex = /\[线索：([^\|]+)\|([^\]]+)\]/g;
+      const clueMatches = [...npcResponse.matchAll(clueRegex)];
+
+      if (clueMatches.length > 0) {
+        console.log(
+          `🔍 [NPCChat] 发现 ${clueMatches.length} 个线索标记`,
+        );
+        clueMatches.forEach((match) => {
+          const clueTitle = match[1].trim();
+          const clueContent = match[2].trim();
+          // 添加线索
+          const newClue: Clue = {
+            id: `clue_${Date.now()}_${Math.random()}`,
+            title: clueTitle,
+            content: clueContent,
+            discoveredAt: Date.now(),
+          };
+
+          onUpdateGameState((prev) => ({
+            ...prev,
+            clues: [...prev.clues, newClue],
+          }));
+
+          console.log(
+            `  🔎 [线索获得] ${clueTitle}: ${clueContent}`,
+          );
+        });
+      }
+
+      // 解析技能 - 检测 [技能：技能名|描述] 标记
+      const skillRegex = /\[技能：([^\|]+)\|([^\]]+)\]/g;
+      const skillMatches = [
+        ...npcResponse.matchAll(skillRegex),
+      ];
+
+      if (skillMatches.length > 0) {
+        console.log(
+          `⚡ [NPCChat] 发现 ${skillMatches.length} 个技能标记`,
+        );
+        skillMatches.forEach((match) => {
+          const skillName = match[1].trim();
+          const skillDescription = match[2].trim();
+          // 添加技能
+          const newSkill: Skill = {
+            id: `skill_${Date.now()}_${Math.random()}`,
+            name: skillName,
+            description: skillDescription,
+            level: 1,
+          };
+
+          onUpdateGameState((prev) => ({
+            ...prev,
+            skills: [...prev.skills, newSkill],
+          }));
+
+          console.log(
+            `  ⚡ [技能获得] ${skillName}: ${skillDescription}`,
+          );
+        });
+      }
+
+      // 检测使用物品 - 检测 [使用：xxx] 标记
+      const useItemRegex = /\[使用：([^\]]+)\]/g;
+      const useMatches = [
+        ...userMessage.content.matchAll(useItemRegex),
+      ];
+
+      if (useMatches.length > 0) {
+        console.log(
+          `🎒 [NPCChat] 发现 ${useMatches.length} 个使用物品标记`,
+        );
+        useMatches.forEach((match) => {
+          const itemName = match[1].trim();
+          // 从背包中移除物品
+          onUpdateGameState((prev) => ({
+            ...prev,
+            inventory: prev.inventory.filter(
+              (item) => item.name !== itemName,
+            ),
+          }));
+
+          console.log(`  ♻️ [物品使用] ${itemName}`);
+        });
+      }
 
       const assistantMessage: Message = {
         role: "assistant",
@@ -229,6 +396,7 @@ export function NPCChat({
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+      console.log("💬 [NPCChat] 对话完成");
 
       // 更新NPC记忆
       updateNPCMemoryAfterChat(
@@ -246,7 +414,7 @@ export function NPCChat({
       // 检查是否触发特殊条件
       checkDialogueConditions(npcResponse);
     } catch (error) {
-      console.error("发送消息失败:", error);
+      console.error("❌ [NPCChat] 发送消息失败:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -278,6 +446,113 @@ export function NPCChat({
       e.preventDefault();
       handleSend();
     }
+  };
+
+  // 渲染消息内容，解析特殊标记并高亮显示
+  const renderMessageContent = (content: string) => {
+    // 移除标记符号，但保留文字内容用于显示
+    let displayContent = content;
+
+    // 提取所有特殊标记
+    const items = [
+      ...content.matchAll(/\[获得物品：([^\]]+)\]/g),
+    ];
+    const clues = [
+      ...content.matchAll(/\[线索：([^\|]+)\|([^\]]+)\]/g),
+    ];
+    const skills = [
+      ...content.matchAll(/\[技能：([^\|]+)\|([^\]]+)\]/g),
+    ];
+
+    // 移除标记，只保留纯文本
+    displayContent = displayContent.replace(
+      /\[获得物品：[^\]]+\]/g,
+      "",
+    );
+    displayContent = displayContent.replace(
+      /\[线索：[^\]]+\]/g,
+      "",
+    );
+    displayContent = displayContent.replace(
+      /\[技能：[^\]]+\]/g,
+      "",
+    );
+
+    return (
+      <div className="space-y-2">
+        {/* 主要文本内容 */}
+        {displayContent.trim() && (
+          <p className="text-sm leading-relaxed">
+            {displayContent.trim()}
+          </p>
+        )}
+
+        {/* 物品获得提示 */}
+        {items.map((match, index) => (
+          <motion.div
+            key={`item-${index}`}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-2 p-2 bg-amber-500/20 border border-amber-400/50 rounded-lg mt-2"
+          >
+            <Package className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-xs text-amber-300">获得物品</p>
+              <p className="text-sm text-amber-100">
+                {match[1]}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+
+        {/* 线索获得提示 */}
+        {clues.map((match, index) => (
+          <motion.div
+            key={`clue-${index}`}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-start gap-2 p-2 bg-cyan-500/20 border border-cyan-400/50 rounded-lg mt-2"
+          >
+            <Search className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-xs text-cyan-300">发现线索</p>
+              <p className="text-sm text-cyan-100">
+                {match[1]}
+              </p>
+              <p className="text-xs text-cyan-200/70 mt-1">
+                {match[2]}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+
+        {/* 技能获得提示 */}
+        {skills.map((match, index) => (
+          <motion.div
+            key={`skill-${index}`}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-start gap-2 p-2 bg-purple-500/20 border border-purple-400/50 rounded-lg mt-2"
+          >
+            <Zap className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-xs text-purple-300">
+                习得技能
+              </p>
+              <p className="text-sm text-purple-100">
+                {match[1]}
+              </p>
+              <p className="text-xs text-purple-200/70 mt-1">
+                {match[2]}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
   };
 
   if (!isOpen) return null;
@@ -325,6 +600,12 @@ export function NPCChat({
           {/* 对话区域 */}
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             <div className="space-y-4">
+              {/* 思维链 */}
+              <ThinkingProcess
+                gameState={gameState}
+                isThinking={isLoading}
+              />
+
               {messages.map((message, index) => (
                 <motion.div
                   key={index}
@@ -344,9 +625,7 @@ export function NPCChat({
                         : "bg-slate-700/50 text-slate-200 border border-slate-600/30"
                     }`}
                   >
-                    <p className="text-sm leading-relaxed">
-                      {message.content}
-                    </p>
+                    {renderMessageContent(message.content)}
                   </div>
                 </motion.div>
               ))}

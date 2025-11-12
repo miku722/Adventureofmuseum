@@ -52,6 +52,9 @@ export function GameManager() {
     narrativeHistory: [],
     conversationHistory: [],
     playerChoice: null,
+    inventory: [],
+    clues: [],
+    skills: [],
   });
 
   // 调试模式

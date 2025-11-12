@@ -54,6 +54,9 @@ export function GameCover() {
     narrativeHistory: [],
     conversationHistory: [],
     playerChoice: null,
+    inventory: [],
+    clues: [],
+    skills: [],
   });
 
   // 调试模式

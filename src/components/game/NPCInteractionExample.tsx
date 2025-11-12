@@ -9,12 +9,19 @@ import { MessageCircle, Users } from "lucide-react";
 import { NPCChat } from "./NPCChat";
 import { npcMemoryManager, NPC_IDENTITIES } from "../../utils/npcMemorySystem";
 import { Button } from "../ui/button";
+import { GameState } from "../../utils/gameSystemPrompt";
 
 interface NPCInteractionExampleProps {
   playerName: string;
+  gameState: GameState;
+  onUpdateGameState: (updater: (prev: GameState) => GameState) => void;
 }
 
-export function NPCInteractionExample({ playerName }: NPCInteractionExampleProps) {
+export function NPCInteractionExample({ 
+  playerName, 
+  gameState, 
+  onUpdateGameState 
+}: NPCInteractionExampleProps) {
   const [activeNPC, setActiveNPC] = useState<string | null>(null);
 
   // 示例NPC列表
@@ -202,6 +209,8 @@ export function NPCInteractionExample({ playerName }: NPCInteractionExampleProps
         <NPCChat
           npcId={activeNPC}
           playerName={playerName}
+          gameState={gameState}
+          onUpdateGameState={onUpdateGameState}
           isOpen={true}
           onClose={() => setActiveNPC(null)}
           onDialogueCondition={(condition) => {
