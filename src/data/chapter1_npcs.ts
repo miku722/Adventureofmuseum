@@ -31,6 +31,7 @@ export const chapter1NPCs: Record<string, NPC> = {
       description: "热乎乎的包子，看起来很普通",
       icon: "🥟",
       type: "food",
+      quantity: 1,
     },
   },
 
@@ -117,13 +118,7 @@ export const chapter1NPCs: Record<string, NPC> = {
     role: "官兵",
     location: "government",
     dialogue: [
-      "站住！官府重地，闲人勿进！",
-      "什么？你问官粮为什么没发？",
-      "别提了！本要运往宫中祭祀大典的一尊国宝青铜鼎被盗！",
-      "现在全城戒严！",
-      "所有祭祀用的贡品（食物）都堆在仓库，运不出去！",
-      "码头那帮船工的粮食自然也耽搁了！",
-      "唉，也不知道那国宝去哪了...",
+      "站住！官府重地，闲人勿进！"
     ],
     currentDialogueIndex: 0,
     givesClue: {
@@ -164,4 +159,5 @@ export const tributeFood: GameItem = {
   description: "官府仓库中的高品质食物，原本用于祭祀大典",
   icon: "🍱",
   type: "food",
+  quantity: 1,
 };

@@ -5,6 +5,7 @@ export interface GameItem {
   description: string;
   icon?: string;
   type: "food" | "artifact" | "clue" | "ability";
+  quantity?: number; // 物品数量，默认为1
 }
 
 // NPC类型

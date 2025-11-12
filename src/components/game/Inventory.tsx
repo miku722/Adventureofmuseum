@@ -118,11 +118,24 @@ export function Inventory() {
                           className="bg-slate-800/50 border border-amber-600/30 rounded-lg p-4 hover:border-amber-400/50 transition-all"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-12 h-12 bg-amber-900/30 rounded-lg flex items-center justify-center border border-amber-600/30">
+                            <div className="w-12 h-12 bg-amber-900/30 rounded-lg flex items-center justify-center border border-amber-600/30 relative">
                               <span className="text-2xl">{item.icon || "📦"}</span>
+                              {/* 如果数量大于1，显示数量标签 */}
+                              {(item.quantity || 1) > 1 && (
+                                <span className="absolute -top-1 -right-1 bg-amber-600 text-black text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                  {item.quantity}
+                                </span>
+                              )}
                             </div>
                             <div className="flex-1">
-                              <h3 className="text-amber-200 mb-1">{item.name}</h3>
+                              <h3 className="text-amber-200 mb-1">
+                                {item.name}
+                                {(item.quantity || 1) > 1 && (
+                                  <span className="text-amber-400/70 text-sm ml-2">
+                                    ×{item.quantity}
+                                  </span>
+                                )}
+                              </h3>
                               <p className="text-amber-400/70 text-xs">
                                 {item.description}
                               </p>

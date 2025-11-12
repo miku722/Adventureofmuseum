@@ -231,12 +231,5 @@ html {
 
 /* 按钮提示文本 - 用于"空格键"等提示 */
 .hint-text {
-  letter-spacing: 0.1em;
-  font-family: monospace;
-}
-
-/* 乱码文本 - 用于系统故障效果 */
-.glitch-text {
-  font-family: monospace;
   letter-spacing: 0.05em;
 }

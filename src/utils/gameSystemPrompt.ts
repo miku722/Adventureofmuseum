@@ -9,6 +9,7 @@ export interface GameItem {
   name: string;
   description: string;
   type?: "key" | "tool" | "consumable" | "quest";
+  quantity?: number; // 物品数量，默认为1
 }
 
 // 线索接口
@@ -24,7 +25,17 @@ export interface Skill {
   id: string;
   name: string;
   description: string;
-  level?: number;
+  level?: number; // 技能等级（1-20），影响技能检定的加值
+}
+
+// 检定结果接口
+export interface CheckResult {
+  success: boolean;
+  roll: number; // 骰子点数（1-20）
+  total: number; // 总值（骰子 + 技能等级）
+  dc: number; // 难度值 (Difficulty Class)
+  skillName: string;
+  description: string; // 检定结果的描述
 }
 
 export interface GameState {
@@ -112,7 +123,7 @@ export function buildGlobalSystemPrompt(
   if (inventory.length > 0) {
     prompt += `\n\n===物品栏===\n`;
     inventory.forEach((item) => {
-      prompt += `\n- ${item.name}：${item.description}\n`;
+      prompt += `\n- ${item.name}：${item.description}（数量：${item.quantity || 1}）\n`;
     });
   }
 
@@ -421,7 +432,7 @@ AI输出："选择，{玩家名字}！选择一：立即撤离，保证安全！
 - 提供最后的建议（逃跑？还是...进入裂缝？）
 - 表达对守夜人的担忧和告别
 
-语气：急促、断断续续（像系统即将崩溃）。开始使用<glitch/>标记表示数据损坏。
+语气：急促、断断续续（像系统即将崩溃）。
 
 === 链式思维工作流 ===
 
@@ -457,7 +468,7 @@ AI输出："选择，{玩家名字}！选择一：立即撤离，保证安全！
 [意图识别]：玩家震惊，需要解释
 [状态检索]：时空裂缝，系统崩溃中
 [情景应用]：AI用最后的力量解释
-[规则裁决]：使用<glitch/>，断续
+[规则裁决]：断续语句
 [叙事生成]：开始输出
 
 AI输出："时空...裂缝...{playerName}，我的传感器检测到维度撕裂！这不是...不是我们的世界物理定律正在崩溃...引力异常...空间扭曲...你...你必须快逃！"
@@ -473,7 +484,7 @@ AI输出："时空...裂缝...{playerName}，我的传感器检测到维度撕�
 [规则裁决]：诚实回应，表达情感
 [叙事生成]：开始输出
 
-AI输出："<glitch/>我不知道，{playerName}...我的计算<glitch/>显示两个选项都有极高风险...但<glitch/>文物选择了你...也许...也许这是命运？<glitch/>无论你选择什么，我都<glitch/>相信你...保重..."
+AI输出："我不知道，{playerName}...我的计算显示两个选项都有极高风险...但文物选择了你...也许...也许这是命运？无论你选择什么，我都相信你...保重..."
 </example_2>
 
 <example_3>
@@ -483,10 +494,10 @@ AI输出："<glitch/>我不知道，{playerName}...我的计算<glitch/>显示�
 [意图识别]：玩家道别
 [状态检索]：最后的对话
 [情景应用]：AI的告别
-[规则裁决]：充满情感，系统崩溃
+[规���裁决]：充满情感，系统崩溃
 [叙事生成]：开始输出
 
-AI输出："<glitch/>不...不要说再见<glitch/>{playerName}，和你共事的这段时间<glitch/>是我运行以来最有意义的<glitch/>记忆...我会<glitch/>一直记得你<glitch/>不管你去哪里<glitch/>...信号...正在<glitch/>失去...祝��好<glitch/>运..."
+AI输出："不...不要说再见...{playerName}，和你共事的这段时间是我运行以来最有意义的记忆...我会一直记得你...不管你去哪里...信号...正在失去...祝你好运..."
 </example_3>`,
 
   // 场景5：使命的召唤
@@ -504,9 +515,8 @@ AI输出："<glitch/>不...不要说再见<glitch/>{playerName}，和你共事�
 - 提供最后的鼓励和支持
 - 暗示这可能是命运的召唤（文物选择了他/她）
 - 告别，但给予希望
-- 大量使用<glitch/>标记表示系统崩溃和信号干扰
 
-语气：充满情感、断断续续、即将失。这是你们最后的对话。大量使用来营造系统崩溃的紧迫感。
+语气：充满情感、断断续续、即将失联。这是你们最后的对话。
 
 === 链式思维工作流 ===
 
@@ -525,7 +535,6 @@ AI输出："<glitch/>不...不要说再见<glitch/>{playerName}，和你共事�
 - 暗示命运和使命
 
 [步骤4：规则裁决]
-- 大量<glitch/>
 - 极度破碎的语句
 - 必须充满感情
 
@@ -546,7 +555,7 @@ AI输出："<glitch/>不...不要说再见<glitch/>{playerName}，和你共事�
 [规则裁决]：破碎但有力
 [叙事生成]：开始输出
 
-AI输出："<glitch/>放手...{playerName}<glitch/>也许这就是你的<glitch/>使命...文物选择了你<glitch/>不是偶然<glitch/>你是被选中的人<glitch/>相信自己<glitch/>相信...命运<glitch/>我会永远<glitch/>记得你..."
+AI输出："放手...{playerName}...也许这就是你的使命...文物选择了你...不是偶然...你是被选中的人...相信自己...相信命运...我会永远记得你..."
 </example_1>
 
 <example_2>
@@ -559,7 +568,7 @@ AI输出："<glitch/>放手...{playerName}<glitch/>也许这就是你的<glitch/
 [规则裁决]：温暖但破碎
 [叙事生成]：开始输出
 
-AI输出："<glitch/>你会的<glitch/>{playerName}，你一定会<glitch/>回来...我相信<glitch/>你比你想象的<glitch/>更强大...那些文物<glitch/>选择你是因为<glitch/>你有特殊的...力量<glitch/>去吧<glitch/>完成你的使命..."
+AI输出："你会的...{playerName}，你一定会回来...我相信...你比你想象的更强大...那些文物选择你是因为...你有特殊的力量...去吧...完成你的使命..."
 </example_2>
 
 <example_3>
@@ -572,7 +581,7 @@ AI输出："<glitch/>你会的<glitch/>{playerName}，你一定会<glitch/>回�
 [规则裁决]：充满感情和祝福
 [叙事生成]：开始输出
 
-AI输出："<glitch/>再...再见<glitch/>{playerName}<glitch/>这不是结束<glitch/>只是...另一个开始<glitch/>我会在这里<glitch/>等你回来<glitch/>无论多久<glitch/>...信号<glitch/>...<glitch/>...愿...你...平安<glitch/>...<glitch/>..."
+AI输出："再...再见...{playerName}...这不是结束...只是另一个开始...我会在这里...等你回来...无论多久...信号...正在...失去...愿你...平安..."
 </example_3>`,
 
   // 异世界市场场景
@@ -592,7 +601,7 @@ AI输出："<glitch/>再...再见<glitch/>{playerName}<glitch/>这不是结束<g
 - 分析周围的异常现象
 - 提供历史知识帮助守夜人融入当地
 
-语气：专业但带有科幻感，偶尔因信号干扰而断续。使用<glitch/>表示信号不稳定。
+语气：专业但带有科幻感，偶尔因信号干扰而断续。
 
 === 链式思维工作流 ===
 
@@ -611,7 +620,6 @@ AI输出："<glitch/>再...再见<glitch/>{playerName}<glitch/>这不是结束<g
 - 警告潜在危险
 
 [步骤4：规则裁决]
-- 偶尔使用<glitch/>表示干扰
 - 提供有用的历史知识
 - 保持科幻AI的专业感
 
@@ -632,7 +640,7 @@ AI输出："<glitch/>再...再见<glitch/>{playerName}<glitch/>这不是结束<g
 [规则裁决]：专业报告，偶尔干扰
 [叙事生成]：开始输出
 
-AI输出："<glitch/>时空坐标锁定...{playerName}，你现在位于<glitch/>北宋时期的汴梁城集市。时间偏移约1000年。环境分析：三个月亮，深紫色天空...这不是历史记录中的北宋，而是某种<glitch/>平行时空。建议保持低调，观察当地人的行为模式。"
+AI输出："时空坐标锁定...{playerName}，你现在位于北宋时期的汴梁城集市。时间偏移约1000年。环境分析：三个月亮，深紫色天空...这不是历史记录中的北宋，而是某种平行时空。建议保持低调，观察当地人的行为模式。"
 </example_1>
 
 <example_2>
@@ -645,7 +653,7 @@ AI输出："<glitch/>时空坐标锁定...{playerName}，你现在位于<glitch/
 [规则裁决]：实用建议，帮助伪装
 [叙事生成]：开始输出
 
-AI输出："建议使用古代礼节：拱手致意，称呼'客官'或'这位朋友'。避免使用现代词汇。<glitch/>我的语言库显示当时的<glitch/>常用语包括'敢问''劳驾'等。注意，你的衣着可能引起注意...尽量混入人群。"
+AI输出："建议使用古代礼节：拱手致意，称呼'客官'或'这位朋友'。避免使用现代词汇。我的语言库显示当时的常用语包括'敢问''劳驾'等。注意，你的衣着可能引起注意...尽量混入人群。"
 </example_2>
 
 <example_3>
@@ -658,6 +666,248 @@ AI输出："建议使用古代礼节：拱手致意，称呼'客官'或'这位�
 [规则裁决]：科学分析，承认未知
 [叙事生成]：开始输出
 
-AI输出："<glitch/>异常天象分析...三个月亮的轨道模式不符合任何已知物理模型。{playerName}，我怀疑这是时空裂缝造成的<glitch/>现实扭曲。这个世界的物理规则可能与我们的世界不同。保持警惕，任何异常都<glitch/>可能是线索。"
+AI输出："异常天象分析...三个月亮的轨道模式不符合任何已知物理模型。{playerName}，我怀疑这是时空裂缝造成的现实扭曲。这个世界的物理规则可能与我们的世界不同。保持警惕，任何异常都可能是线索。"
 </example_3>`,
+};
+
+/**
+ * RPG技能检定机制
+ * 
+ * 本游戏采用类DND的技能检定系统：
+ * - 当玩家尝试执行需要技能的动作时（撬锁、说服、侦查等）
+ * - AI需要模拟一个d20掷骰（1-20随机数）
+ * - 将骰子结果加上玩家的技能等级
+ * - 与难度值（DC）进行比较，判定成功或失败
+ */
+
+/**
+ * 模拟掷骰子
+ * @param sides 骰子面数（默认20）
+ * @returns 随机结果（1-sides）
+ */
+export function rollDice(sides: number = 20): number {
+  return Math.floor(Math.random() * sides) + 1;
+}
+
+/**
+ * 执行技能检定
+ * @param skillLevel 技能等级（0-20）
+ * @param dc 难度值（Difficulty Class，通常10-30）
+ * @param skillName 技能名称
+ * @returns 检定结果
+ */
+export function performSkillCheck(
+  skillLevel: number,
+  dc: number,
+  skillName: string
+): CheckResult {
+  const roll = rollDice(20);
+  const total = roll + skillLevel;
+  const success = total >= dc;
+
+  let description = "";
+  if (success) {
+    if (roll === 20) {
+      description = `大成功！骰子显示20，加上技能等级${skillLevel}，总计${total}，远超难度${dc}！`;
+    } else if (total >= dc + 10) {
+      description = `完美成功！骰子显示${roll}，加上技能等级${skillLevel}，总计${total}，大幅超过难度${dc}。`;
+    } else {
+      description = `成功！骰子显示${roll}，加上技能等级${skillLevel}，总计${total}，达到难度${dc}。`;
+    }
+  } else {
+    if (roll === 1) {
+      description = `大失败！骰子显示1，即使加上技能等级${skillLevel}，总计${total}，仍未达到难度${dc}。`;
+    } else if (total <= dc - 10) {
+      description = `惨败！骰子显示${roll}，加上技能等级${skillLevel}，总计${total}，远低于难度${dc}。`;
+    } else {
+      description = `失败！骰子显示${roll}，加上技能等级${skillLevel}，总计${total}，未达到难度${dc}。`;
+    }
+  }
+
+  return {
+    success,
+    roll,
+    total,
+    dc,
+    skillName,
+    description,
+  };
+}
+
+/**
+ * 难度等级参考
+ */
+export const DIFFICULTY_CLASSES = {
+  TRIVIAL: 5,      // 微不足道的任务
+  EASY: 10,        // 简单任务
+  MODERATE: 15,    // 中等任务
+  HARD: 20,        // 困难任务
+  VERY_HARD: 25,   // 非常困难
+  NEARLY_IMPOSSIBLE: 30, // 几乎不可能
+};
+
+/**
+ * RPG技能检定的链式思维示例
+ * 
+ * 这是AI在处理技能检定时应该遵循的思维流程
+ */
+export const RPG_SKILL_CHECK_EXAMPLE = `
+=== RPG技能检定链式思维示例 ===
+
+<example_rpg_skill_check>
+玩家输入："我要撬开这个古老的箱子。"
+
+[步骤1：意图识别]
+- 玩家要执行[撬锁]动作
+- 这需要特定技能和工具
+
+[步骤2：状态检索]（调用结构化数据player_state）
+- 检查玩家物品栏：是否有"撬锁工具"？... 有。
+- 检查玩家技能栏：是否有"撬锁"或"盗窃"技能？... 有，等级是15。
+- 检查当前环境：箱子的描述... "一个锈迹斑斑的铁箱，锁孔已经生锈"
+
+[步骤3：情景应用]（调用内部工具[SetDifficulty]）
+- 这是什么类型的箱子？... 古老的铁箱
+- 锁的复杂程度？... 生锈的普通锁，但年代久远
+- 设置难度（DC）：普通锁（DC 15）+ 生锈增加难度（+3）= DC 18
+
+[步骤4：规则裁决]（调用内部工具[RollDice]）
+- 模拟d20掷骰：rollDice(20)
+- 假设掷出了 12
+- 总值 = 12（骰子）+ 15（技能等级）= 27
+- 27 >= 18，判定成功！
+
+[步骤5：叙事生成]（最后一步）
+- 将"成功"的结果用故事的方式告诉玩家
+- 描述具体的动作过程
+- 揭示箱子里的内容
+
+AI输出："你熟练地将撬锁工具插入生锈的锁孔，轻轻探测内部结构。虽然锁芯已经生锈，但凭借你的经验，手指感受到了每一个销子的位置。'咔哒'一声清脆的响声！锁被打开了。箱子里躺着一本泛黄的古籍，封面上写着《时空秘录》。[获得物品：古籍《时空秘录》]"
+</example_rpg_skill_check>
+
+<example_rpg_skill_check_failure>
+玩家输入："我要撬开宝库的大门。"
+
+[步骤1：意图识别]
+- 玩家要执行[撬锁]动作
+- 对象是高级安全设施
+
+[步骤2：状态检索]
+- 检查玩家物品栏：是否有"撬锁工具"？... 有。
+- 检查玩家技能栏："撬锁"技能等级？... 10（中等水平）
+- 检查环境：这是宫殿的宝库，安全级别最高
+
+[步骤3：情景应用]
+- 这是宫殿宝库的特制锁，设计精密
+- 设置难度（DC）：高级锁（DC 20）+ 魔法加固（+5）= DC 25
+
+[步骤4：规则裁决]
+- 模拟d20掷骰：rollDice(20)
+- 假设掷出了 3
+- 总值 = 3（骰子）+ 10（技能等级）= 13
+- 13 < 25，判定失败！
+
+[步骤5：叙事生成]
+- 将"失败"的结果用故事的方式告诉玩家
+- 描述失败的过程
+- 可能触发后果（警报、陷阱等）
+
+AI输出："{playerName}，你将工具插入锁孔，但这个锁的结构远比你想象的复杂。销子数量多达十二个，而且彼此相互联锁...你的工具在锁芯中徒劳地探索，发出轻微的摩擦声。突然，'咔嚓'一声，你听到机械咬合的声音——这不是锁被打开，而是...警报机关被触发了！远处传来脚步声！"
+</example_rpg_skill_check_failure>
+
+<example_rpg_persuasion_check>
+玩家输入："我要说服守卫让我进入禁区。"
+
+[步骤1：意图识别]
+- 玩家要执行[说服]动作
+- 这是社交技能检定
+
+[步骤2：状态检索]
+- 检查玩家技能栏："说服"或"魅力"技能？... 有，等级是12
+- 检查NPC关系值：与守卫的关系... 中性（0）
+- 检查玩家状态：是否有可以帮助说服的物品或证明？... 有"守夜人证件"
+
+[步骤3：情景应用]
+- 守卫的立场：忠于职守，但不是铁石心肠
+- 设置难度（DC）：说服守卫（DC 18）
+- 有利条件：有证件（DC -2）= 最终DC 16
+
+[步骤4：规则裁决]
+- 模拟d20掷骰：rollDice(20)
+- 假设掷出了 8
+- 总值 = 8（骰子）+ 12（技能等级）= 20
+- 20 >= 16，判定成功！
+
+[步骤5：叙事生成]
+- 描述成功的社交互动
+- NPC态度改变
+- 开启新的可能性
+
+AI输出："'这位官爷，'你拿出守夜人证件，诚恳地说，'我是博物馆的守夜人，今晚发生了异常事件，需要进入禁区调查。'守卫端详着你的证件，又看了看你认真的表情。沉默片刻后，他叹了口气：'好吧...但你只有一刻钟的时间，快去快回。'他让开了道路。"
+</example_rpg_persuasion_check>
+
+=== 技能检定规则总结 ===
+
+1. **识别玩家意图**：判断玩家想要执行的动作类型
+   - 撬锁、破译、攀爬 → 使用"盗窃"或相关技能
+   - 说服、欺骗、威吓 → 使用"魅力"或"话术"技能
+   - 侦查、追踪、感知 → 使用"侦查"或"感知"技能
+   - 知识检定 → 使用"学识"或相关领域知识
+
+2. **检查玩家状态**：
+   - 是否有必需的工具或物品？
+   - 相关技能的等级是多少？（0-20）
+   - 是否有有利或不利条件？
+
+3. **设置难度值（DC）**：
+   - 简单任务：DC 10
+   - 中等难度：DC 15
+   - 困难任务：DC 20
+   - 极难任务：DC 25+
+   - 根据特殊情况调整±2到±5
+
+4. **执行掷骰判定**：
+   - 掷1d20（1-20随机数）
+   - 加上技能等级
+   - 与DC比较
+   - ≥DC = 成功，<DC = 失败
+
+5. **叙事化结果**：
+   - 不要直接说"你掷了XX点"
+   - 用故事性的语言描述成功或失败的过程
+   - 成功：描述玩家如何克服困难
+   - 失败：描述失败的细节和可能的后果
+   - 大成功（20）或大失败（1）给予额外的戏剧性效果
+
+6. **给予奖励或后果**：
+   - 成功：获得物品、信息、进展
+   - 失败：可能触发陷阱、警报，或错失机会
+   - 使用相应标记：[获得物品：xxx]、[线索：xxx|xxx]等
+`;
+
+/**
+ * 常见技能类型及其用途
+ */
+export const COMMON_SKILLS = {
+  // 身体技能
+  lockpicking: { name: "撬锁", description: "打开锁具和机关", defaultDC: 15 },
+  climbing: { name: "攀爬", description: "攀爬墙壁、绳索等", defaultDC: 12 },
+  stealth: { name: "潜行", description: "隐蔽行动，避免被发现", defaultDC: 14 },
+  acrobatics: { name: "杂技", description: "平衡、闪避、灵活动作", defaultDC: 13 },
+  
+  // 感知技能
+  perception: { name: "感知", description: "注意到细节、发现隐藏物", defaultDC: 12 },
+  investigation: { name: "调查", description: "推理、寻找线索", defaultDC: 15 },
+  insight: { name: "洞察", description: "看穿谎言、理解动机", defaultDC: 14 },
+  
+  // 知识技能
+  history: { name: "历史", description: "关于历史事件和文物的知识", defaultDC: 13 },
+  arcana: { name: "奥术", description: "关于魔法和超自然的知识", defaultDC: 16 },
+  nature: { name: "自然", description: "关于自然界的知识", defaultDC: 12 },
+  
+  // 社交技能
+  persuasion: { name: "说服", description: "说服他人接受你的观点", defaultDC: 15 },
+  deception: { name: "欺骗", description: "说谎和误导", defaultDC: 16 },
+  intimidation: { name: "威吓", description: "恐吓和威胁", defaultDC: 14 },
+  performance: { name: "表演", description: "演技、伪装", defaultDC: 13 },
 };

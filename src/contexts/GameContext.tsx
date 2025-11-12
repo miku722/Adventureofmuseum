@@ -3,6 +3,7 @@ import { GameState, GameItem, Clue, Ability, NPC } from "../types/game";
 
 interface GameContextType {
   gameState: GameState;
+  updateGameState: (updater: (prev: GameState) => GameState) => void;
   addItem: (item: GameItem) => void;
   removeItem: (itemId: string) => void;
   hasItem: (itemId: string) => boolean;
@@ -26,16 +27,33 @@ export function GameProvider({ children }: { children: ReactNode }) {
     npcStates: {},
   });
 
+  const updateGameState = (updater: (prev: GameState) => GameState) => {
+    setGameState(updater);
+  };
+
   const addItem = (item: GameItem) => {
     setGameState((prev) => {
-      // 检查是否已经有这个物品
-      if (prev.inventory.some((i) => i.id === item.id)) {
-        console.log(`物品 ${item.name} 已经在背包中`);
-        return prev;
+      // 检查是否已经有相同名称的物品
+      const existingItem = prev.inventory.find((i) => i.name === item.name);
+      
+      if (existingItem) {
+        // 如果已有该物品，增加数量
+        console.log(`物品 ${item.name} 数量增加: ${existingItem.quantity || 1} → ${(existingItem.quantity || 1) + (item.quantity || 1)}`);
+        return {
+          ...prev,
+          inventory: prev.inventory.map((i) =>
+            i.name === item.name
+              ? { ...i, quantity: (i.quantity || 1) + (item.quantity || 1) }
+              : i
+          ),
+        };
       }
+      
+      // 如果没有该物品，添加新物品（确保有quantity字段）
+      console.log(`物品 ${item.name} 已添加到背包 ×${item.quantity || 1}`);
       return {
         ...prev,
-        inventory: [...prev.inventory, item],
+        inventory: [...prev.inventory, { ...item, quantity: item.quantity || 1 }],
       };
     });
   };
@@ -114,6 +132,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     <GameContext.Provider
       value={{
         gameState,
+        updateGameState,
         addItem,
         removeItem,
         hasItem,
